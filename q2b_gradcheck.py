@@ -5,7 +5,7 @@ from numpy.testing import assert_allclose
 
 
 def gradcheck_naive(f, x, gradient_text=""):
-    """ Gradient check for a function f.
+    """Gradient check for a function f.
     Arguments:
     f -- a function that takes a single argument and outputs the
          loss and its gradients
@@ -16,10 +16,10 @@ def gradcheck_naive(f, x, gradient_text=""):
     rndstate = random.getstate()
     random.setstate(rndstate)
     fx, grad = f(x)  # Evaluate function value at original point
-    h = 1e-4         # Do not change this!
+    h = 1e-4  # Do not change this!
 
     # Iterate over all indexes ix in x to check the gradient.
-    it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
+    it = np.nditer(x, flags=["multi_index"], op_flags=["readwrite"])
     while not it.finished:
         ix = it.multi_index
 
@@ -35,15 +35,26 @@ def gradcheck_naive(f, x, gradient_text=""):
         # before calling f(x) each time. This will make it possible
         # to test cost functions with built in randomness later.
 
-        ### YOUR CODE HERE:
-        raise NotImplementedError
-        ### END YOUR CODE
+        minusVec = np.copy(x)
+        minusVec[ix] -= h
+        random.setstate(rndstate)
+        minusVec = f(minusVec)[0]
 
+        plusVec = np.copy(x)
+        plusVec[ix] += h
+        random.setstate(rndstate)
+        plusVec = f(plusVec)[0]
+
+        numgrad = (plusVec - minusVec) / (2 * h)
         # Compare gradients
-        assert_allclose(numgrad, grad[ix], rtol=1e-5,
-                        err_msg=f"Gradient check failed for {gradient_text}.\n"
-                                f"First gradient error found at index {ix} in the vector of gradients\n"
-                                f"Your gradient: {grad[ix]} \t Numerical gradient: {numgrad}")
+        assert_allclose(
+            numgrad,
+            grad[ix],
+            rtol=1e-5,
+            err_msg=f"Gradient check failed for {gradient_text}.\n"
+            f"First gradient error found at index {ix} in the vector of gradients\n"
+            f"Your gradient: {grad[ix]} \t Numerical gradient: {numgrad}",
+        )
 
         it.iternext()  # Step to next dimension
 
@@ -54,12 +65,17 @@ def test_gradcheck_basic():
     """
     Some basic sanity checks.
     """
-    quad = lambda x: (np.sum(x ** 2), 2*x)
+    quad = lambda x: (np.sum(x**2), 2 * x)
 
     print("Running sanity checks...")
-    gradcheck_naive(quad, np.array(123.456))       # scalar test
-    gradcheck_naive(quad, np.random.randn(3,))     # 1-D test
-    gradcheck_naive(quad, np.random.randn(4, 5))   # 2-D test
+    gradcheck_naive(quad, np.array(123.456))  # scalar test
+    gradcheck_naive(
+        quad,
+        np.random.randn(
+            3,
+        ),
+    )  # 1-D test
+    gradcheck_naive(quad, np.random.randn(4, 5))  # 2-D test
     print()
 
 
@@ -71,9 +87,10 @@ def your_gradcheck_test():
     your additional tests be graded.
     """
     print("Running your sanity checks...")
-    ### YOUR OPTIONAL CODE HERE
-    pass
-    ### END YOUR CODE
+    cube = lambda z: (np.sum(z**3), 3 * (z**2))
+    shape = np.random.randint(1, 20, size=2)
+    x = np.random.random(shape) * np.random.randint(1, 1000)
+    gradcheck_naive(cube, x)
 
 
 if __name__ == "__main__":
